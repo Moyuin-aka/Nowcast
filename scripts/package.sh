@@ -3,8 +3,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-native}"
-VERSION="${NOWCAST_VERSION:-0.1.0}"
-[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Version must be x.y.z' >&2; exit 1; }
+VERSION="$(bash scripts/version.sh --print)"
+BUILD_VERSION="${NOWCAST_BUILD_NUMBER:-$VERSION}"
+[[ "$BUILD_VERSION" =~ ^[0-9]+([.][0-9]+){0,2}$ ]] || {
+  echo 'NOWCAST_BUILD_NUMBER must contain one to three dot-separated integers' >&2
+  exit 1
+}
 ARGS=(-c release)
 case "$MODE" in
   native) ;;
@@ -20,16 +24,20 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" dist
 cp "$BIN_DIR/Nowcast" "$APP/Contents/MacOS/Nowcast"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_VERSION" "$APP/Contents/Info.plist"
 SIGN_IDENTITY="${NOWCAST_SIGN_IDENTITY:--}"
-codesign --force --sign "$SIGN_IDENTITY" --options runtime --timestamp=none \
-  --entitlements Resources/Nowcast.entitlements "$APP"
-if [[ "$SIGN_IDENTITY" != '-' ]]; then
+if [[ "$SIGN_IDENTITY" == '-' ]]; then
+  codesign --force --sign - --options runtime --timestamp=none \
+    --entitlements Resources/Nowcast.entitlements "$APP"
+else
   codesign --force --sign "$SIGN_IDENTITY" --options runtime --timestamp \
     --entitlements Resources/Nowcast.entitlements "$APP"
 fi
 codesign --verify --deep --strict "$APP"
 # Preserve the app for local installation, and also provide drag-to-Applications DMG.
-ditto "$APP" dist/Nowcast.app
+OUTPUT_APP="dist/Nowcast.app"
+rm -rf "$OUTPUT_APP"
+ditto "$APP" "$OUTPUT_APP"
 ln -s /Applications "$STAGE/Applications"
 DMG="dist/Nowcast-$VERSION-$MODE.dmg"
 hdiutil create -volname Nowcast -srcfolder "$STAGE" -ov -format UDZO "$DMG"
@@ -38,5 +46,5 @@ if [[ -n "${NOWCAST_NOTARY_PROFILE:-}" ]]; then
   xcrun stapler staple "$DMG"
   xcrun stapler validate "$DMG"
 fi
-shasum -a 256 "$DMG" > "$DMG.sha256"
+(cd dist && shasum -a 256 "$(basename "$DMG")" > "$(basename "$DMG").sha256")
 echo "Built $DMG"
