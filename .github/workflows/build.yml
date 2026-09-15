@@ -1,0 +1,34 @@
+name: Build macOS DMG
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test rules and protocol
+        run: swift test
+      - name: Build universal app and DMG
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            export NOWCAST_VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          bash scripts/package.sh universal
+      - name: Verify both architectures
+        run: lipo -verify_arch arm64 x86_64 dist/Nowcast.app/Contents/MacOS/Nowcast
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nowcast-macOS-universal
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 30
