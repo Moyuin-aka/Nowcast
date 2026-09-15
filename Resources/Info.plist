@@ -5,8 +5,8 @@
 <key>CFBundleExecutable</key><string>Nowcast</string>
 <key>CFBundleName</key><string>Nowcast</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>0.0.0</string>
+<key>CFBundleVersion</key><string>0</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSUIElement</key><true/>
 <key>NSAppleEventsUsageDescription</key><string>Nowcast 读取当前浏览器网站和 Music 播放状态，以显示你选择公开的活动。不会读取网页正文、笔记或终端命令。</string>

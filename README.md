@@ -1,6 +1,6 @@
 # Nowcast · 此刻
 
-A small macOS menu bar app that turns what you are doing into an API.
+A small macOS menu bar app that turns what you are doing into a provider-neutral API.
 
 把此刻，轻轻广播。前台写代码，后台听音乐；网站自动更新，无需重新部署。
 
@@ -18,8 +18,8 @@ A small macOS menu bar app that turns what you are doing into an API.
 
 ## 安装与初次使用
 
-1. 在 GitHub Actions 的 **Build macOS DMG** 中下载 `Nowcast-macOS-universal` artifact，解压得到 DMG。
-   也可自行执行下方构建命令。
+1. 从 GitHub Releases 下载对应版本的 universal DMG。开发预览也可以从 **Build and release macOS app**
+   workflow 的 artifact 下载，或自行执行下方构建命令。
 2. 将 DMG 中的 Nowcast 拖到 Applications，打开。
 3. 默认暂停共享。填写自己的 API 地址和写入密钥，保存，然后「开始共享」。
    不填地址时也可开始采集，在菜单栏本地预览；不会上传。
@@ -41,9 +41,13 @@ bash scripts/package.sh native
 bash scripts/package.sh universal
 ```
 
-输出：`dist/Nowcast.app`、`dist/Nowcast-0.1.0-native.dmg` 和 SHA-256 校验文件。
-设置 `NOWCAST_VERSION=0.2.0` 可改版本。CLI 工具链不足以构建通用二进制时，使用 Xcode / Actions。
+输出：`dist/Nowcast.app`、`dist/Nowcast-<version>-native.dmg` 和 SHA-256 校验文件。
+仓库根目录的 `VERSION` 是唯一发布版本源。CLI 工具链不足以构建通用二进制时，使用 Xcode / Actions。
 请运行打包后的 `.app`；直接 `swift run` 的权限归属和登录启动行为不代表分发版。
+
+推送与 `VERSION` 完全一致的 `vX.Y.Z` tag 后，GitHub Actions 会测试并验证通用 DMG，再自动创建
+GitHub Release。应用的 `CFBundleShortVersionString`、DMG 文件名、artifact 名称和 Release tag 均来自同一版本；
+CI run number 写入 `CFBundleVersion`，用于区分构建。
 
 ## 配置规则
 
@@ -97,7 +101,13 @@ x-now-playing-secret: <your-secret>
 接收端成功返回任意 2xx；401 表示密钥错误；其他状态视为失败。重试会发送最新采样。
 HTTPS 必需；本机 `localhost` / `127.0.0.1` 允许 HTTP 调试。
 
-## 接入 Tyndall
+## 接入个人网站
+
+Nowcast 不依赖 Tyndall、Astro、Supabase 或特定托管平台。接收端只需实现
+[presence protocol v1](docs/protocol-v1.md)，框架适配的目录约定与隐私要求见
+[receiver integrations](docs/integrations.md)。所有公开示例使用合成数据，不包含个人站点的部署信息。
+
+### Tyndall 参考适配
 
 配套 Tyndall 改动包含：
 

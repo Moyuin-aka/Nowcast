@@ -7,7 +7,9 @@
 - Mac 源码：菜单栏、设置窗口、前台应用映射、浏览器域名识别、Music 后台采集、Keychain、登录启动。
 - 数据规则：应用/域名白名单、3 秒防抖、独立 activity/music、60 秒心跳。
 - Tyndall 接入：动态 API、严格输入校验、180 秒 TTL、数据库并发写入函数、双状态卡片。
-- 打包：Swift Package、打包脚本、GitHub Actions 通用 DMG 工作流。尚未运行 GitHub Actions。
+- 通用接入：协议 v1 与 receiver adapter 约束已独立成文档；Tyndall 是第一个参考适配，不是应用依赖。
+- 工程化：Copilot 仓库/路径指引、PR 模板、统一版本源、通用 DMG 验证和 tag 自动 Release workflow 已加入。
+- 打包：Swift Package 与打包脚本已存在；新版 GitHub Actions workflow 尚待首个 PR run 验证。
 - 未配置真实上报密钥，未执行线上数据库迁移，未部署网站，未生成可安装 DMG。
 
 ## 已验证
@@ -16,6 +18,7 @@
 - Mac 核心模块通过直接 `swiftc` 编译（非完整应用）。
 - Tyndall `pnpm astro check` 报告 16 个现有页面错误，本次新增/修改的状态文件未出现在错误列表中。
 - 完整网站构建通过前端编译并进入页面生成，但已有 OG 图片的 Google Fonts 下载失败：沙箱内 DNS 失败，放开网络后连接被重置。
+- `VERSION`、tag 对应关系、shell 语法、plist、workflow YAML 和仓库隐私扫描已通过本地静态检查。
 
 ## 尚未完成的验证
 
@@ -32,7 +35,7 @@
 3. 完善锁屏行为（现有休眠/会话通知不等于已验证的所有锁屏场景）。
 4. 测试浏览器 JXA、Music 在后台/暂停/退出时的行为和 Automation 授权归属。
 5. 执行本地端到端测试与桌面/移动端视觉检查。
-6. 本地构建 DMG；推送 GitHub 后运行 CI，核实 arm64/x86_64 通用产物。
+6. 用 PR workflow 完成 `swift test`、通用 DMG、双架构、签名、版本元数据和校验和验证。
 7. 真实接入时应用 SQL 迁移、设置密钥并部署 Tyndall 一次，然后安装采集器。
 
 ## 集成文件位置
