@@ -10,7 +10,7 @@ Nowcast is a small macOS presence publisher. Keep collection local and output in
 - Never upload raw URLs, window titles, terminal commands, documents or browser history.
 - New collectors must be optional, have a timeout, clear stale state on failure and explain permissions.
 - Use a local receiver and synthetic data for debugging. Never commit production keys or personal config.
-- Keep adapters reusable and sanitized according to `docs/integrations.md`; host deployment state belongs in the host repository.
+- Follow the boundary in `docs/integrations.md`; receiver code and host deployment state belong in the receiver's repository.
 - Before a PR, test foreground switching, pause/resume, denied Automation permission, Music pause,
   sleep/wake and offline recovery. Include macOS version and screenshots for UI changes.
 

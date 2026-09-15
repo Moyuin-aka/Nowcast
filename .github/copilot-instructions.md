@@ -7,7 +7,7 @@ Nowcast is a provider-neutral macOS menu bar app that publishes a deliberately s
 - Keep raw window titles, full URLs, document contents, terminal commands, browser history, credentials, and personal configuration on the Mac.
 - Only encode fields explicitly declared by the v1 protocol. Treat new collectors and new wire fields as privacy-sensitive design changes.
 - Use `example.com`, synthetic payloads, and local receivers in tests and documentation. Never add a real endpoint, secret, account identifier, personal site content, or production response.
-- Framework adapters under `integrations/` must be reusable, sanitized examples. Host-specific deployment state stays in the host repository.
+- Receiver implementations, database migrations, framework UI components, and deployment settings stay in their own repositories. This repository defines only the public receiver contract.
 
 ## Protocol and runtime invariants
 
@@ -25,6 +25,6 @@ Nowcast is a provider-neutral macOS menu bar app that publishes a deliberately s
 - AppKit/SwiftUI UI, collection, storage, and networking: `Sources/Nowcast/`.
 - Focused XCTest coverage: `Tests/NowcastCoreTests/`.
 - Packaging and release automation: `scripts/`, `Resources/Info.plist`, `VERSION`, and `.github/workflows/`.
-- Receiver examples: `integrations/`; follow `docs/integrations.md`.
+- Receiver contract and repository boundary: `docs/integrations.md`.
 
 Run `swift test` for protocol or rule changes. Run `bash scripts/package.sh native` for application and packaging changes when a complete Xcode toolchain is available. Report toolchain blockers precisely. For PR review, prioritize privacy regressions, concurrency races, stale public state, permission failures, version drift, signing mistakes, and release permissions.

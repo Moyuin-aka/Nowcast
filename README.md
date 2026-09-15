@@ -103,23 +103,13 @@ HTTPS 必需；本机 `localhost` / `127.0.0.1` 允许 HTTP 调试。
 
 ## 接入个人网站
 
-Nowcast 不依赖 Tyndall、Astro、Supabase 或特定托管平台。接收端只需实现
+Nowcast 不依赖特定网站框架、数据库或托管平台。接收端只需实现
 [presence protocol v1](docs/protocol-v1.md)，框架适配的目录约定与隐私要求见
 [receiver integrations](docs/integrations.md)。所有公开示例使用合成数据，不包含个人站点的部署信息。
 
-### Tyndall 参考适配
-
-配套 Tyndall 改动包含：
-
-1. `scripts/supabase-nowcast-schema.sql`：在 Supabase SQL Editor 执行一次。
-2. 服务器环境变量：`PUBLIC_SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`NOW_PLAYING_SECRET`。
-3. 部署 Tyndall 的 `/api/presence` 和新卡片一次。
-4. Nowcast 配置 `https://你的域名/api/presence`，密钥与 `NOW_PLAYING_SECRET` 一致。
-5. 网页每 20 秒读取 GET API，设备状态更新不会触发部署。
-
-数据库表仅允许 service_role 访问；公开网页通过 GET API 读取整理后的状态。
-旧 Shortcut 状态在首次 Nowcast 上报前仍可显示；首次上报后由 Nowcast 接管，暂停时不恢复旧状态。
-将来任何遵守协议的后端都可以接收，无需依赖 Tyndall。
+站点侧的 API 实现、数据库迁移、页面组件、环境变量清单和部署说明保留在各自站点仓库中，
+不会作为快照收进 Nowcast。典型接入流程是：站点实现受保护的写入端点和带过期机制的公开读取端点，
+在本地用合成 payload 验证，再把端点与站点自行生成的密钥填入 Nowcast。
 
 ## 验证清单
 

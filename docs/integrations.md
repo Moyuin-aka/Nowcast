@@ -1,8 +1,8 @@
 # Receiver integrations
 
-Nowcast does not depend on a particular web framework, database, hosting platform, or personal site. Each integration should be a sanitized reference adapter that translates the provider-neutral v1 protocol into a host application's runtime.
+Nowcast does not depend on a particular web framework, database, hosting platform, or personal site. This repository defines the provider-neutral protocol and the behavior a compatible receiver must provide.
 
-An integration should include:
+A receiver maintained in its own repository should include:
 
 - a protected POST endpoint implementing `protocol-v1.md`;
 - a public read path or server-side helper that expires stale presence;
@@ -11,6 +11,4 @@ An integration should include:
 - setup documentation listing required environment-variable names without values;
 - an example UI that clearly distinguishes live, idle, stale, and unavailable states when UI code is in scope.
 
-Keep framework-specific code isolated from the macOS client. Do not commit production domains, database identifiers, credentials, user IDs, personal content, deployment metadata, or copied environment files. Develop against a local receiver and synthetic payloads.
-
-The existing `integrations/tyndall/` tree is the first Astro/Supabase host snapshot. It is a reference implementation, not a dependency of the macOS app or the canonical protocol definition.
+Receiver implementations, framework adapters, database migrations, website UI, environment-variable inventories, and deployment instructions stay in the receiver's repository. Do not copy them into Nowcast, even as snapshots. Develop and document the client against a local mock receiver and synthetic payloads.
