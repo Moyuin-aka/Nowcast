@@ -58,7 +58,7 @@ jobs:
         run: |
           app="dist/Nowcast.app"
           dmg="dist/Nowcast-$NOWCAST_VERSION-universal.dmg"
-          lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/Nowcast"
+          lipo "$app/Contents/MacOS/Nowcast" -verify_arch arm64 x86_64
           codesign --verify --deep --strict "$app"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")" = "$NOWCAST_VERSION"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Contents/Info.plist")" = "$NOWCAST_BUILD_NUMBER"

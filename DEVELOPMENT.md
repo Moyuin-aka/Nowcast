@@ -9,7 +9,7 @@
 - Tyndall 接入：动态 API、严格输入校验、180 秒 TTL、数据库并发写入函数、双状态卡片。
 - 通用接入：协议 v1 与 receiver adapter 约束已独立成文档；Tyndall 是第一个参考适配，不是应用依赖。
 - 工程化：Copilot 仓库/路径指引、PR 模板、统一版本源、通用 DMG 验证和 tag 自动 Release workflow 已加入。
-- 打包：Swift Package 与打包脚本已存在；新版 GitHub Actions workflow 尚待首个 PR run 验证。
+- 打包：首个远端 macOS run 已通过 `swift test` 和 universal DMG 构建；新版完整验证链仍待 PR run 通过。
 - 未配置真实上报密钥，未执行线上数据库迁移，未部署网站，未生成可安装 DMG。
 
 ## 已验证
