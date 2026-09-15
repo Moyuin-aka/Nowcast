@@ -19,4 +19,4 @@ Pull requests use `.github/copilot-instructions.md` and path-specific review ins
 To publish a release, update `VERSION`, merge that change to `main`, then create and push the matching tag, for example `v0.2.0`. GitHub Actions verifies the tag/version pair, tests and packages the universal app, checks its metadata and checksum, and publishes the DMG to a GitHub Release.
 
 Useful next contributions: optional browser extension for playback state, configurable per-app icons,
-  English UI, automated notarized releases and additional receiver adapters.
+  English UI, automated notarized releases and local mock-receiver test tooling.

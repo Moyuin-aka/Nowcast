@@ -4,7 +4,7 @@ A small macOS menu bar app that turns what you are doing into a provider-neutral
 
 把此刻，轻轻广播。前台写代码，后台听音乐；网站自动更新，无需重新部署。
 
-> 当前为开发预览：主体代码已实现，完整应用编译、DMG 和端到端验证尚未完成。详见 [开发交接](DEVELOPMENT.md)。
+> 当前为开发预览：CI 已完成完整应用与 universal DMG 构建验证；真实安装、系统权限和端到端行为仍待验证。详见 [开发交接](DEVELOPMENT.md)。
 
 ## 第一版
 
@@ -104,7 +104,7 @@ HTTPS 必需；本机 `localhost` / `127.0.0.1` 允许 HTTP 调试。
 ## 接入个人网站
 
 Nowcast 不依赖特定网站框架、数据库或托管平台。接收端只需实现
-[presence protocol v1](docs/protocol-v1.md)，框架适配的目录约定与隐私要求见
+[presence protocol v1](docs/protocol-v1.md)，接收端行为与仓库隐私边界见
 [receiver integrations](docs/integrations.md)。所有公开示例使用合成数据，不包含个人站点的部署信息。
 
 站点侧的 API 实现、数据库迁移、页面组件、环境变量清单和部署说明保留在各自站点仓库中，

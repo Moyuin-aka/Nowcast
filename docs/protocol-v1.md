@@ -52,11 +52,11 @@ A compatible receiver:
 5. stores only the newest snapshot by default and does not turn the protocol into an activity history without explicit user consent;
 6. returns only the allowed presence fields from its public read endpoint.
 
-The reference implementation uses a 180-second receiver TTL with a 60-second publisher heartbeat. Receivers may choose another TTL, but it should tolerate brief network loss and expire well before a forgotten status becomes misleading.
+A 180-second receiver TTL is the recommended default for Nowcast's 60-second publisher heartbeat. Receivers may choose another TTL, but it should tolerate brief network loss and expire well before a forgotten status becomes misleading.
 
 ## Privacy boundary
 
-The protocol does not contain full URLs, window titles, document contents, terminal commands, browser history, device identifiers, or credentials. Adapters must not add those values around the payload, including in logs, analytics, query strings, or error responses.
+The protocol does not contain full URLs, window titles, document contents, terminal commands, browser history, device identifiers, or credentials. Receivers must not add those values around the payload, including in logs, analytics, query strings, or error responses.
 
 ## Compatibility
 
