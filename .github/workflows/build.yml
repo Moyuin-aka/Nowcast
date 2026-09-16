@@ -60,7 +60,7 @@ jobs:
           done
 
           if [[ "$present" == 0 ]]; then
-            echo 'No Apple release credentials configured; publishing an unsigned prerelease.'
+            echo 'No Apple release credentials configured; publishing an unsigned release.'
             echo 'signed=false' >> "$GITHUB_OUTPUT"
             echo 'NOWCAST_RELEASE_SIGNED=false' >> "$GITHUB_ENV"
           elif [[ "$present" == 3 ]]; then
@@ -199,14 +199,10 @@ jobs:
           NOWCAST_VERSION: ${{ needs.build.outputs.version }}
           NOWCAST_RELEASE_SIGNED: ${{ needs.build.outputs.signed }}
         run: |
-          release_args=(--verify-tag --generate-notes)
-          if [[ "$NOWCAST_RELEASE_SIGNED" == "true" ]]; then
-            release_args+=(--title "Nowcast $GITHUB_REF_NAME")
-          else
+          release_args=(--verify-tag --generate-notes --title "Nowcast $GITHUB_REF_NAME")
+          if [[ "$NOWCAST_RELEASE_SIGNED" != "true" ]]; then
             release_args+=(
-              --prerelease
-              --title "Nowcast $GITHUB_REF_NAME (unsigned preview)"
-              --notes "⚠️ This preview is ad-hoc signed and not notarized. After copying Nowcast to Applications, follow the README's Terminal instructions for the first launch."
+              --notes "⚠️ This release is ad-hoc signed and not notarized. After copying Nowcast to Applications, follow the README's Terminal instructions for the first launch."
             )
           fi
           gh release create "$GITHUB_REF_NAME" \
