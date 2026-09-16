@@ -13,7 +13,14 @@
   <a href="#开发与贡献">开发与贡献</a>
 </p>
 
-<p align="center">macOS 13+ · Apple Silicon & Intel · 原生 Swift · MIT</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-13%2B-24292f?style=flat-square" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Universal-Apple%20Silicon%20%26%20Intel-287a63?style=flat-square" alt="Apple Silicon 与 Intel">
+  <img src="https://img.shields.io/badge/Swift-Native-F05138?style=flat-square" alt="原生 Swift">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-287a63?style=flat-square" alt="MIT License"></a>
+</p>
+
+<p align="center"><strong>简体中文</strong> · <a href="README.en.md" lang="en">English</a></p>
 
 Nowcast 是一款 macOS 菜单栏应用。它在本机把前台应用、浏览器网站和 Apple Music 播放状态整理成简短描述，通过 HTTPS 发送到你指定的 API。网站读取最新状态即可更新展示，无需因活动变化重新构建。
 
