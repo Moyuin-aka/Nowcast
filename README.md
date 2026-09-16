@@ -26,6 +26,19 @@ A small macOS menu bar app that turns what you are doing into a provider-neutral
 4. 首次读取浏览器 / Music 时允许 macOS 的「自动化」授权。没有权限时显示提示并降级。
 5. 需要时勾选「登录时启动」。此操作不会在安装时自动开启。
 
+### 运行未签名预览版
+
+如果 macOS 提示无法验证开发者，请先确认 DMG 来自本仓库，然后把 Nowcast 拖入 Applications。
+打开 **Terminal（终端）**，复制并运行：
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Nowcast.app
+open /Applications/Nowcast.app
+```
+
+第一条命令只移除 `Nowcast.app` 自身的下载隔离标记，不会关闭系统的全局 Gatekeeper；第二条命令启动应用。
+后续可以直接从 Applications 或菜单栏使用，无需重复运行。
+
 Pull request 和普通分支的 Actions 产物仍是 **ad-hoc 签名**，只用于构建验证；下载后可能被 Gatekeeper 阻止。
 tag 发布会强制要求 Developer ID Application 签名、公证与 staple，任一步缺失或失败都不会创建 GitHub Release。
 不要关闭系统安全功能。Apple 凭据配置方法见 [签名发布说明](docs/releasing.md)。
