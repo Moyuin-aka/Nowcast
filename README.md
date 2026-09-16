@@ -4,7 +4,7 @@ A small macOS menu bar app that turns what you are doing into a provider-neutral
 
 把此刻，轻轻广播。前台写代码，后台听音乐；网站自动更新，无需重新部署。
 
-> 当前为开发预览：CI 已完成完整应用与 universal DMG 构建验证；真实安装、系统权限和端到端行为仍待验证。详见 [开发交接](DEVELOPMENT.md)。
+> 当前为开发预览：CI 已完成完整应用与 universal DMG 构建验证；Developer ID 发布链路已接入，下一份正式 DMG 仍需配置 Apple 发布凭据后生成。详见 [开发交接](DEVELOPMENT.md)。
 
 ## 第一版
 
@@ -26,11 +26,9 @@ A small macOS menu bar app that turns what you are doing into a provider-neutral
 4. 首次读取浏览器 / Music 时允许 macOS 的「自动化」授权。没有权限时显示提示并降级。
 5. 需要时勾选「登录时启动」。此操作不会在安装时自动开启。
 
-当前 Actions 产物是 **ad-hoc 签名，未经 Apple 公证** 的预览构建，下载后可能被 Gatekeeper 阻止。
-只在确认来源后使用系统设置中的「仍要打开」流程；正式对外分发应使用 Developer ID 签名和 notarization。
-不要关闭系统安全功能。打包脚本支持 `NOWCAST_SIGN_IDENTITY` 和 `NOWCAST_NOTARY_PROFILE`，
-使用本机预先配置的签名身份和 notarytool 钥匙串 profile 即可签名、公证、staple。
-CI 默认不索取任何 Apple 证书，也不会自动创建公开 Release。
+Pull request 和普通分支的 Actions 产物仍是 **ad-hoc 签名**，只用于构建验证；下载后可能被 Gatekeeper 阻止。
+tag 发布会强制要求 Developer ID Application 签名、公证与 staple，任一步缺失或失败都不会创建 GitHub Release。
+不要关闭系统安全功能。Apple 凭据配置方法见 [签名发布说明](docs/releasing.md)。
 
 ## 本地开发
 
@@ -47,7 +45,8 @@ bash scripts/package.sh universal
 
 推送与 `VERSION` 完全一致的 `vX.Y.Z` tag 后，GitHub Actions 会测试并验证通用 DMG，再自动创建
 GitHub Release。应用的 `CFBundleShortVersionString`、DMG 文件名、artifact 名称和 Release tag 均来自同一版本；
-CI run number 写入 `CFBundleVersion`，用于区分构建。
+CI run number 写入 `CFBundleVersion`，用于区分构建。tag 产物还会验证 Developer ID 身份、notarization ticket
+和 Gatekeeper 评估，再交给 Release job 发布。
 
 ## 配置规则
 
