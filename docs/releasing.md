@@ -1,8 +1,8 @@
 # Signed macOS releases
 
 GitHub tag builds support two explicit modes. With Apple credentials, they import a temporary **Developer ID Application**
-certificate, sign the app with the hardened runtime, notarize and staple the DMG, and publish a normal release. With no
-Apple credentials, they publish an **unsigned prerelease** whose title and notes explain the Gatekeeper limitation.
+certificate, sign the app with the hardened runtime, notarize and staple the DMG, and publish the verified files. With no
+Apple credentials, they publish an **unsigned release** whose notes explain the Gatekeeper limitation.
 Pull requests and ordinary branch builds stay ad-hoc signed and never receive release credentials. A partial set of
 Apple credentials fails the build instead of silently falling back.
 
@@ -44,7 +44,7 @@ then removes that material in an `always()` cleanup step.
 3. Push the tag. With all signing secrets configured, the workflow refuses to publish if the identity is not a
    Developer ID Application identity, notarization fails, stapling fails, or Gatekeeper rejects the DMG.
 
-Without any signing secrets, the workflow instead creates an ad-hoc signed prerelease. Users follow the README's
+Without any signing secrets, the workflow instead creates an ad-hoc signed release. Users follow the README's
 first-launch Terminal instructions. The release job always downloads the exact artifact verified by the macOS build job.
 
 ## Local signed build
