@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   private var subscription: AnyCancellable?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    updates.start()
     model = Monitor()
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.image = NSImage(systemSymbolName: "dot.radiowaves.left.and.right", accessibilityDescription: "Nowcast")
