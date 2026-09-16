@@ -40,8 +40,9 @@ open /Applications/Nowcast.app
 后续可以直接从 Applications 或菜单栏使用，无需重复运行。
 
 Pull request 和普通分支的 Actions 产物仍是 **ad-hoc 签名**，只用于构建验证；下载后可能被 Gatekeeper 阻止。
-tag 发布会强制要求 Developer ID Application 签名、公证与 staple，任一步缺失或失败都不会创建 GitHub Release。
-不要关闭系统安全功能。Apple 凭据配置方法见 [签名发布说明](docs/releasing.md)。
+没有 Apple 凭据时，tag 会发布标题中明确标注的 unsigned prerelease；配置完整凭据后，tag 才会生成经过
+Developer ID Application 签名、公证、staple 和 Gatekeeper 验证的普通 Release。只配置部分凭据会让构建失败，
+不会静默降级。Apple 凭据配置方法见 [签名发布说明](docs/releasing.md)。
 
 ## 本地开发
 
@@ -58,8 +59,8 @@ bash scripts/package.sh universal
 
 推送与 `VERSION` 完全一致的 `vX.Y.Z` tag 后，GitHub Actions 会测试并验证通用 DMG，再自动创建
 GitHub Release。应用的 `CFBundleShortVersionString`、DMG 文件名、artifact 名称和 Release tag 均来自同一版本；
-CI run number 写入 `CFBundleVersion`，用于区分构建。tag 产物还会验证 Developer ID 身份、notarization ticket
-和 Gatekeeper 评估，再交给 Release job 发布。
+CI run number 写入 `CFBundleVersion`，用于区分构建。签名 tag 产物还会验证 Developer ID 身份、
+notarization ticket 和 Gatekeeper 评估；未签名 tag 会作为 prerelease 并附带首次运行说明。
 
 ## 配置规则
 

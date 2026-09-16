@@ -12,7 +12,7 @@
 - 正式分发：tag workflow 已接入 Developer ID、notarytool、staple 与 Gatekeeper 验证；无凭据时拒绝发布。
 - 打包：远端 macOS runner 已通过 `swift test`、universal DMG 构建、双架构、签名、版本元数据、DMG 和校验和验证。
 - 仓库不保存真实接收端或上报密钥；协议已在仓库外完成一次真实端到端接入验证。
-- `v0.1.0` 已跑通 tag 与 GitHub Release，但产物是 ad-hoc 签名；`v0.1.1` 将作为首个强制 Developer ID 与公证的候选版本。
+- `v0.1.0` 已跑通 tag 与 GitHub Release，但产物是 ad-hoc 签名；没有 Apple 会员期间，`v0.1.1` 作为明确标注的 unsigned prerelease 发布。
 
 ## 已验证
 
