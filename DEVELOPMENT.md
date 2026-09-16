@@ -10,10 +10,10 @@
 - 工程化：Copilot 仓库/路径指引、PR 模板、统一版本源、通用 DMG 验证和 tag 自动 Release workflow 已加入。
 - 产品资源：应用图标母版与可重复生成的 `.icns` 流程已加入，打包产物会写入 `CFBundleIconFile`。
 - 应用内更新：菜单栏与设置窗口可调用 Sparkle；更新包和 appcast 使用独立 Ed25519 密钥校验，默认不后台检查。
-- 正式分发：tag workflow 已接入 Developer ID、notarytool、staple 与 Gatekeeper 验证；无凭据时发布附带明确说明的 unsigned Release。
+- 正式分发：tag workflow 已接入 Developer ID、notarytool、staple 与 Gatekeeper 验证；无凭据时发布附带明确说明的 ad-hoc 签名、未公证 Release。
 - 打包：远端 macOS runner 已通过 `swift test`、universal DMG 构建、双架构、签名、版本元数据、DMG 和校验和验证。
 - 仓库不保存真实接收端或上报密钥；协议已在仓库外完成一次真实端到端接入验证。
-- `v0.1.0` 已跑通 tag 与 GitHub Release，但产物是 ad-hoc 签名；没有 Apple 会员期间，`v0.1.1` 作为在 notes 中明确说明的 unsigned Release 发布。
+- `v0.1.0` 已跑通 tag 与 GitHub Release，但产物是 ad-hoc 签名；没有 Apple 会员期间，`v0.1.1` 作为在 notes 中明确说明的 ad-hoc 签名、未公证 Release 发布。
 
 ## 已验证
 

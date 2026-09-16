@@ -60,7 +60,7 @@ jobs:
           done
 
           if [[ "$present" == 0 ]]; then
-            echo 'No Apple release credentials configured; publishing an unsigned release.'
+            echo 'No Apple release credentials configured; publishing an ad-hoc signed, unnotarized release.'
             echo 'signed=false' >> "$GITHUB_OUTPUT"
             echo 'NOWCAST_RELEASE_SIGNED=false' >> "$GITHUB_ENV"
           elif [[ "$present" == 3 ]]; then

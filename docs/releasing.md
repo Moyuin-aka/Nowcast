@@ -2,7 +2,7 @@
 
 GitHub tag builds support two explicit modes. With Apple credentials, they import a temporary **Developer ID Application**
 certificate, sign the app with the hardened runtime, notarize and staple the DMG, and publish the verified files. With no
-Apple credentials, they publish an **unsigned release** whose notes explain the Gatekeeper limitation.
+Apple credentials, they publish an **ad-hoc signed, unnotarized release** whose notes explain the Gatekeeper limitation.
 Pull requests and ordinary branch builds stay ad-hoc signed and never receive release credentials. A partial set of
 Apple credentials fails the build instead of silently falling back.
 
