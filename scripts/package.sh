@@ -35,11 +35,13 @@ bash scripts/make-icon.sh "$APP/Contents/Resources/Nowcast.icns"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_VERSION" "$APP/Contents/Info.plist"
 SIGN_IDENTITY="${NOWCAST_SIGN_IDENTITY:--}"
-SIGN_ARGS=(--force --sign "$SIGN_IDENTITY" --options runtime)
+SIGN_ARGS=(--force --sign "$SIGN_IDENTITY")
 if [[ "$SIGN_IDENTITY" == '-' ]]; then
+  # Hardened Runtime enforces Library Validation. Ad-hoc signatures have no
+  # stable Team ID, so dyld would reject the embedded Sparkle framework.
   SIGN_ARGS+=(--timestamp=none)
 else
-  SIGN_ARGS+=(--timestamp)
+  SIGN_ARGS+=(--options runtime --timestamp)
 fi
 SPARKLE_VERSION="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 for nested in \

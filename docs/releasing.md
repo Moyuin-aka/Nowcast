@@ -2,7 +2,7 @@
 
 GitHub tag builds support two explicit modes. With Apple credentials, they import a temporary **Developer ID Application**
 certificate, sign the app with the hardened runtime, notarize and staple the DMG, and publish the verified files. With no
-Apple credentials, they publish an **unsigned release** whose notes explain the Gatekeeper limitation.
+Apple credentials, they publish an **ad-hoc signed, unnotarized release** whose notes explain the Gatekeeper limitation.
 Pull requests and ordinary branch builds stay ad-hoc signed and never receive release credentials. A partial set of
 Apple credentials fails the build instead of silently falling back.
 
@@ -56,7 +56,9 @@ GitHub Release. Installed versions read the appcast through the repository's HTT
 replace or hand-edit the generated appcast after signing it.
 
 Without any signing secrets, the workflow instead creates an ad-hoc signed release. Users follow the README's
-first-launch Terminal instructions. The release job always downloads the exact artifact verified by the macOS build job.
+first-launch Terminal instructions. Ad-hoc packages omit Hardened Runtime because they have no stable Team ID for
+Library Validation across the app and Sparkle framework. Developer ID packages keep Hardened Runtime enabled. The
+macOS job launches the packaged app before upload, and the release job downloads that exact verified artifact.
 
 ## Local signed build
 

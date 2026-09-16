@@ -60,7 +60,7 @@ jobs:
           done
 
           if [[ "$present" == 0 ]]; then
-            echo 'No Apple release credentials configured; publishing an unsigned release.'
+            echo 'No Apple release credentials configured; publishing an ad-hoc signed, unnotarized release.'
             echo 'signed=false' >> "$GITHUB_OUTPUT"
             echo 'NOWCAST_RELEASE_SIGNED=false' >> "$GITHUB_ENV"
           elif [[ "$present" == 3 ]]; then
@@ -147,6 +147,7 @@ jobs:
           otool -L "$app/Contents/MacOS/Nowcast" | grep -q '@rpath/Sparkle.framework/Versions/B/Sparkle'
           otool -l "$app/Contents/MacOS/Nowcast" | grep -A2 LC_RPATH | grep -q '@executable_path/../Frameworks'
           codesign --verify --deep --strict "$app"
+          bash scripts/smoke-launch.sh "$app"
           test -f "$app/Contents/Resources/Nowcast.icns"
           test -f "$app/Contents/Resources/Sparkle-LICENSE.txt"
           test "$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$app/Contents/Info.plist")" = "https://github.com/Moyuin-aka/Nowcast/releases/latest/download/appcast.xml"
