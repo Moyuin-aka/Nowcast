@@ -23,6 +23,7 @@ APP="$STAGE/Nowcast.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" dist
 cp "$BIN_DIR/Nowcast" "$APP/Contents/MacOS/Nowcast"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+bash scripts/make-icon.sh "$APP/Contents/Resources/Nowcast.icns"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_VERSION" "$APP/Contents/Info.plist"
 SIGN_IDENTITY="${NOWCAST_SIGN_IDENTITY:--}"
@@ -42,7 +43,11 @@ ln -s /Applications "$STAGE/Applications"
 DMG="dist/Nowcast-$VERSION-$MODE.dmg"
 hdiutil create -volname Nowcast -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 if [[ -n "${NOWCAST_NOTARY_PROFILE:-}" ]]; then
-  xcrun notarytool submit "$DMG" --keychain-profile "$NOWCAST_NOTARY_PROFILE" --wait
+  NOTARY_ARGS=(--keychain-profile "$NOWCAST_NOTARY_PROFILE")
+  if [[ -n "${NOWCAST_NOTARY_KEYCHAIN:-}" ]]; then
+    NOTARY_ARGS+=(--keychain "$NOWCAST_NOTARY_KEYCHAIN")
+  fi
+  xcrun notarytool submit "$DMG" "${NOTARY_ARGS[@]}" --wait
   xcrun stapler staple "$DMG"
   xcrun stapler validate "$DMG"
 fi
