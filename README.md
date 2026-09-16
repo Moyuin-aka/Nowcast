@@ -66,7 +66,7 @@ Nowcast 是一款 macOS 菜单栏应用。它在本机把前台应用、浏览�
 
 ### 首次打开被 macOS 阻止
 
-当前发布包使用 ad-hoc 签名，尚未经过 Apple Developer ID 签名与公证。如果 macOS 无法验证开发者，确认下载来自本仓库并已将应用拖入 Applications 后，打开 **Terminal（终端）**运行：
+当前发布包使用 ad-hoc 签名，尚未经过 Apple Developer ID 签名与公证。如果 macOS 无法验证开发者，确认下载来自本仓库并已将应用拖入 Applications 后，打开 **Terminal（终端）** 运行：
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/Nowcast.app
