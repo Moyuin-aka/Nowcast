@@ -27,6 +27,7 @@ Add these repository secrets under **Settings → Secrets and variables → Acti
 | `APPLE_API_KEY_P8` | Complete text of the App Store Connect `.p8` file |
 | `APPLE_API_KEY_ID` | App Store Connect API Key ID |
 | `APPLE_API_ISSUER_ID` | App Store Connect Issuer ID; omit for an individual API key |
+| `SPARKLE_PRIVATE_KEY` | Private Ed25519 key exported by Sparkle's `generate_keys` tool |
 
 On macOS, create the certificate secret without writing another plaintext copy:
 
@@ -37,12 +38,22 @@ base64 -i DeveloperIDApplication.p12 | pbcopy
 Never commit any of these values. The workflow writes them only to the runner's temporary directory and keychain,
 then removes that material in an `always()` cleanup step.
 
+The Sparkle update key is separate from Apple signing. Generate it once with the account name
+`org.nowcast.presence`, keep the private key in the maintainer's login Keychain, and copy an exported value directly
+into the `SPARKLE_PRIVATE_KEY` Actions secret. The matching public key is committed in `Resources/Info.plist`.
+Tag builds fail when this secret is missing. The private key is passed to `generate_appcast` over standard input and
+is never written into the repository or build artifact.
+
 ## Publish
 
 1. Update `VERSION` and merge it to `main`.
 2. Create a tag whose name is exactly `v<contents-of-VERSION>`.
 3. Push the tag. With all signing secrets configured, the workflow refuses to publish if the identity is not a
    Developer ID Application identity, notarization fails, stapling fails, or Gatekeeper rejects the DMG.
+
+The same tag build signs the DMG for Sparkle, generates a signed `appcast.xml`, and publishes both files in the
+GitHub Release. Installed versions read the appcast through the repository's HTTPS `releases/latest` URL. Do not
+replace or hand-edit the generated appcast after signing it.
 
 Without any signing secrets, the workflow instead creates an ad-hoc signed release. Users follow the README's
 first-launch Terminal instructions. The release job always downloads the exact artifact verified by the macOS build job.

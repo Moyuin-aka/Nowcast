@@ -46,6 +46,7 @@ The bundled activity labels are currently in Chinese. These are their English me
 | Apple Music in the background | Track, artist, and album, alongside foreground activity |
 
 - **At home in the menu bar**: preview your status, pause sharing, and optionally launch at login.
+- **In-app updates**: choose **检查更新…** (Check for Updates) from the menu bar or settings window to verify, install, and relaunch.
 - **In your own words**: edit app and domain rules. Unknown apps produce no activity; unknown sites use a generic browsing label.
 - **Built for everyday switching**: a 3-second debounce and 60-second heartbeat. After a connection loss, only the latest state is retained, with no historical replay.
 - **For your own website**: a small JSON protocol that works with different frameworks, databases, and hosting providers.
@@ -56,6 +57,8 @@ The bundled activity labels are currently in Chinese. These are their English me
 2. Open the DMG, drag **Nowcast** to **Applications**, and launch it. Open **状态与设置…** (Status & Settings) from the menu bar.
 3. Sharing is paused on first launch. Enter your API endpoint and write secret, click **保存设置** (Save Settings), then **开始共享** (Start Sharing). Leave the endpoint empty to preview locally first.
 4. Allow macOS Automation access when prompted to read your browser or Music, if you want those features. Launch at login is opt-in.
+
+For later versions, choose **检查更新…** (Check for Updates) from the menu bar or settings window to install directly. Nowcast does not check for updates in the background by default.
 
 The app's interface is currently in Chinese; the labels below help you find each setting.
 
@@ -138,7 +141,7 @@ Supported `kind` values are `coding`, `vibe`, `writing`, `ai`, `browsing`, `read
 
 ## Development and contributing
 
-Use macOS with a full Xcode toolchain. Nowcast is built with Swift, AppKit, and SwiftUI, with no third-party runtime dependencies.
+Use macOS with a full Xcode toolchain. Nowcast is built with Swift, AppKit, and SwiftUI; in-app updates use Sparkle 2, and the remaining runtime has no third-party dependencies.
 
 ```sh
 git clone https://github.com/Moyuin-aka/Nowcast.git
