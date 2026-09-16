@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
   private var model: Monitor!
+  private let updates = UpdateController()
   private var subscription: AnyCancellable?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
@@ -44,6 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     item(menu, "状态与设置…", #selector(showSettings), ",")
     item(menu, "登录时启动", #selector(toggleLogin)).state = model.loginEnabled ? .on : .off
     menu.addItem(.separator())
+    item(menu, "检查更新…", #selector(checkForUpdates)).isEnabled = updates.canCheckForUpdates
+    menu.addItem(.separator())
     item(menu, "退出 Nowcast", #selector(quit), "q")
   }
   @discardableResult private func item(_ menu: NSMenu, _ title: String, _ action: Selector, _ key: String = "") -> NSMenuItem {
@@ -51,13 +54,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   }
   @objc private func toggleSharing() { model.setSharing(!model.enabled) }
   @objc private func toggleLogin() { model.toggleLogin() }
+  @objc private func checkForUpdates() { updates.checkForUpdates() }
   @objc private func quit() { Task { await model.clearBeforeQuit(); NSApp.terminate(nil) } }
   @objc private func showSettings() {
     if window == nil {
       let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 670),
         styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
       w.title = "Nowcast"; w.isReleasedWhenClosed = false
-      w.contentView = NSHostingView(rootView: SettingsView(model: model))
+      w.contentView = NSHostingView(rootView: SettingsView(model: model, updates: updates))
       w.center(); window = w
     }
     NSApp.activate(ignoringOtherApps: true); window?.makeKeyAndOrderFront(nil)
@@ -66,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
 struct SettingsView: View {
   @ObservedObject var model: Monitor
+  let updates: UpdateController
   @State private var endpoint = ""
   @State private var secret = ""
   @State private var browser = true
@@ -136,6 +141,16 @@ struct SettingsView: View {
             .font(.caption).foregroundStyle(.secondary).lineSpacing(4)
           Text("只上传规则文案和播放中的歌曲。不上传窗口标题、网页地址、笔记内容或终端命令。Mac 休眠后，公开状态会清除或在 3 分钟内过期。")
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+        Divider()
+        HStack {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Nowcast \(updates.currentVersion)").font(.headline)
+            Text("从 GitHub Releases 安全检查并安装新版本。")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          Spacer()
+          CheckForUpdatesButton(updates: updates)
         }
       }.padding(28)
     }

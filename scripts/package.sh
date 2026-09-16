@@ -20,20 +20,37 @@ BIN_DIR="$(swift build "${ARGS[@]}" --show-bin-path)"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/nowcast-stage.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 APP="$STAGE/Nowcast.app"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" dist
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks" dist
 cp "$BIN_DIR/Nowcast" "$APP/Contents/MacOS/Nowcast"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+SPARKLE_FRAMEWORK="$(find .build/artifacts -type d -path '*/Sparkle.xcframework/macos-*/Sparkle.framework' -print -quit)"
+SPARKLE_LICENSE="$(find .build/artifacts -type f -path '*/Sparkle/LICENSE' -print -quit)"
+[[ -n "$SPARKLE_FRAMEWORK" && -n "$SPARKLE_LICENSE" ]] || {
+  echo 'Sparkle framework or license was not found in SwiftPM artifacts' >&2
+  exit 1
+}
+ditto "$SPARKLE_FRAMEWORK" "$APP/Contents/Frameworks/Sparkle.framework"
+cp "$SPARKLE_LICENSE" "$APP/Contents/Resources/Sparkle-LICENSE.txt"
 bash scripts/make-icon.sh "$APP/Contents/Resources/Nowcast.icns"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_VERSION" "$APP/Contents/Info.plist"
 SIGN_IDENTITY="${NOWCAST_SIGN_IDENTITY:--}"
+SIGN_ARGS=(--force --sign "$SIGN_IDENTITY" --options runtime)
 if [[ "$SIGN_IDENTITY" == '-' ]]; then
-  codesign --force --sign - --options runtime --timestamp=none \
-    --entitlements Resources/Nowcast.entitlements "$APP"
+  SIGN_ARGS+=(--timestamp=none)
 else
-  codesign --force --sign "$SIGN_IDENTITY" --options runtime --timestamp \
-    --entitlements Resources/Nowcast.entitlements "$APP"
+  SIGN_ARGS+=(--timestamp)
 fi
+SPARKLE_VERSION="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+for nested in \
+  "$SPARKLE_VERSION/Updater.app" \
+  "$SPARKLE_VERSION/XPCServices/Downloader.xpc" \
+  "$SPARKLE_VERSION/XPCServices/Installer.xpc" \
+  "$SPARKLE_VERSION/Autoupdate" \
+  "$APP/Contents/Frameworks/Sparkle.framework"; do
+  codesign "${SIGN_ARGS[@]}" --preserve-metadata=identifier,entitlements "$nested"
+done
+codesign "${SIGN_ARGS[@]}" --entitlements Resources/Nowcast.entitlements "$APP"
 codesign --verify --deep --strict "$APP"
 # Preserve the app for local installation, and also provide drag-to-Applications DMG.
 OUTPUT_APP="dist/Nowcast.app"

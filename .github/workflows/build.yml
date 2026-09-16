@@ -143,8 +143,15 @@ jobs:
           app="dist/Nowcast.app"
           dmg="dist/Nowcast-$NOWCAST_VERSION-universal.dmg"
           lipo "$app/Contents/MacOS/Nowcast" -verify_arch arm64 x86_64
+          lipo "$app/Contents/Frameworks/Sparkle.framework/Versions/Current/Sparkle" -verify_arch arm64 x86_64
+          otool -L "$app/Contents/MacOS/Nowcast" | grep -q '@rpath/Sparkle.framework/Versions/B/Sparkle'
+          otool -l "$app/Contents/MacOS/Nowcast" | grep -A2 LC_RPATH | grep -q '@executable_path/../Frameworks'
           codesign --verify --deep --strict "$app"
           test -f "$app/Contents/Resources/Nowcast.icns"
+          test -f "$app/Contents/Resources/Sparkle-LICENSE.txt"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$app/Contents/Info.plist")" = "https://github.com/Moyuin-aka/Nowcast/releases/latest/download/appcast.xml"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :SUVerifyUpdateBeforeExtraction' "$app/Contents/Info.plist")" = "true"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :SURequireSignedFeed' "$app/Contents/Info.plist")" = "true"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$app/Contents/Info.plist")" = "Nowcast.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")" = "$NOWCAST_VERSION"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Contents/Info.plist")" = "$NOWCAST_BUILD_NUMBER"
@@ -159,6 +166,39 @@ jobs:
             codesign -dv --verbose=4 "$app" 2>&1 | grep -q '^Signature=adhoc$'
           fi
 
+      - name: Generate signed Sparkle appcast
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          NOWCAST_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [[ -z "$SPARKLE_PRIVATE_KEY" ]]; then
+            echo 'Missing required Actions secret: SPARKLE_PRIVATE_KEY' >&2
+            exit 1
+          fi
+          generator="$(find .build/artifacts -type f -path '*/Sparkle/bin/generate_appcast' -print -quit)"
+          if [[ -z "$generator" ]]; then
+            echo 'Sparkle generate_appcast tool was not found in SwiftPM artifacts' >&2
+            exit 1
+          fi
+          updates="$RUNNER_TEMP/nowcast-updates"
+          mkdir -p "$updates"
+          cp "dist/Nowcast-$NOWCAST_VERSION-universal.dmg" "$updates/"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$generator" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/" \
+            --full-release-notes-url "https://github.com/$GITHUB_REPOSITORY/releases" \
+            --link "https://github.com/$GITHUB_REPOSITORY" \
+            --maximum-versions 1 \
+            --maximum-deltas 0 \
+            -o "$updates/appcast.xml" \
+            "$updates"
+          cp "$updates/appcast.xml" dist/appcast.xml
+          xmllint --noout dist/appcast.xml
+          grep -q 'sparkle:edSignature=' dist/appcast.xml
+          grep -q 'sparkle-signatures:' dist/appcast.xml
+
       - name: Upload package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -166,6 +206,7 @@ jobs:
           path: |
             dist/Nowcast-${{ steps.version.outputs.version }}-universal.dmg
             dist/Nowcast-${{ steps.version.outputs.version }}-universal.dmg.sha256
+            dist/appcast.xml
           if-no-files-found: error
           retention-days: 30
 
@@ -208,4 +249,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             "dist/Nowcast-$NOWCAST_VERSION-universal.dmg" \
             "dist/Nowcast-$NOWCAST_VERSION-universal.dmg.sha256" \
+            "dist/appcast.xml" \
             "${release_args[@]}"

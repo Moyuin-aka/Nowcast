@@ -9,6 +9,7 @@
 - 通用接入：协议 v1 与接收端行为约束已独立成文档；站点实现不属于本仓库。
 - 工程化：Copilot 仓库/路径指引、PR 模板、统一版本源、通用 DMG 验证和 tag 自动 Release workflow 已加入。
 - 产品资源：应用图标母版与可重复生成的 `.icns` 流程已加入，打包产物会写入 `CFBundleIconFile`。
+- 应用内更新：菜单栏与设置窗口可调用 Sparkle；更新包和 appcast 使用独立 Ed25519 密钥校验，默认不后台检查。
 - 正式分发：tag workflow 已接入 Developer ID、notarytool、staple 与 Gatekeeper 验证；无凭据时发布附带明确说明的 unsigned Release。
 - 打包：远端 macOS runner 已通过 `swift test`、universal DMG 构建、双架构、签名、版本元数据、DMG 和校验和验证。
 - 仓库不保存真实接收端或上报密钥；协议已在仓库外完成一次真实端到端接入验证。
@@ -26,6 +27,7 @@
 - 本机 CommandLineTools 的 Swift PackageDescription 模块/动态库不一致，`swift test` 在清单链接阶段失败；远端完整 Xcode 环境不受影响。
 - 真实浏览器与 Music Automation 权限、休眠/锁屏、网络恢复、登录启动和安装后的权限归属仍需验证。
 - Developer ID 签名、公证和 staple 流程尚未用真实凭据完成第一次运行；本机目前只有开发证书。
+- Sparkle 集成尚未通过首次 tag 发布和旧版本到新版本的真实升级验证。
 
 ## 下一步优先事项
 
