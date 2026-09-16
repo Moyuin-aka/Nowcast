@@ -13,3 +13,4 @@ Read `DEVELOPMENT.md` before continuing; this is an unverified development previ
 - Validate with `swift test` and `bash scripts/package.sh native` when the toolchain supports them.
 - Report test/build blockers accurately; workflow files alone do not prove a DMG works.
 - Use Conventional Commits. Do not copy code or configuration from a receiver's private repository into Nowcast.
+- **Required PR follow-up:** After opening a PR or pushing updates, check Copilot's review and inline comments. Address actionable findings, explain any suggestions not adopted, and check again after fixes. If the review is pending or unavailable, report that explicitly; do not treat a passing build as a completed review.
