@@ -15,9 +15,12 @@ final class Monitor: ObservableObject {
   @Published var loginEnabled = SMAppService.mainApp.status == .enabled
   private let collector = Collector()
   private var stabilizer = ActivityStabilizer()
+  private var samplingSchedule = ActivitySamplingSchedule()
   private var timer: Timer?
   private var observations: [NSObjectProtocol] = []
   private var collecting = false
+  private var tickPending = false
+  private var forceBrowserReadPending = false
   private var suspended = false
   private var generation = 0
   private var lastMusicRead = Date.distantPast
@@ -34,7 +37,7 @@ final class Monitor: ObservableObject {
     enabled = UserDefaults.standard.bool(forKey: "sharingEnabled") && warning == nil
     let center = NSWorkspace.shared.notificationCenter
     observations.append(center.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
-      Task { @MainActor in self?.tick() }
+      Task { @MainActor in self?.tick(forceBrowserRead: true) }
     })
     for name in [NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
       observations.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
@@ -49,20 +52,23 @@ final class Monitor: ObservableObject {
     timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
       Task { @MainActor in self?.tick() }
     }
+    timer?.tolerance = 0.2
     tick()
   }
 
   func setSharing(_ value: Bool) {
     enabled = value; UserDefaults.standard.set(value, forKey: "sharingEnabled")
     generation += 1; stabilizer.clear(); activity = nil; music = nil
-    lastSignature = ""; lastMusicRead = .distantPast
+    lastSignature = ""; lastMusicRead = .distantPast; samplingSchedule.reset()
+    tickPending = false; forceBrowserReadPending = false
     if !value { enqueue(Presence(activity: nil, music: nil)); connection = "已暂停；正在清除公开状态" }
     else { tick() }
   }
 
   private func setSuspended(_ value: Bool) {
     suspended = value; generation += 1; stabilizer.clear(); activity = nil; music = nil
-    lastSignature = ""; lastMusicRead = .distantPast
+    lastSignature = ""; lastMusicRead = .distantPast; samplingSchedule.reset()
+    tickPending = false; forceBrowserReadPending = false
     if value && enabled { enqueue(Presence(activity: nil, music: nil)) }
     else { tick() }
   }
@@ -95,26 +101,50 @@ final class Monitor: ObservableObject {
     } catch { warning = "登录启动设置失败：\(error.localizedDescription)" }
   }
 
-  func tick() {
-    guard enabled && !suspended && !collecting else { return }
+  func tick(forceBrowserRead: Bool = false) {
+    guard enabled && !suspended else { return }
+    if collecting {
+      tickPending = true
+      forceBrowserReadPending = forceBrowserReadPending || forceBrowserRead
+      return
+    }
     let bundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? ""
     // Opening this menu/settings must not replace the user's actual activity.
     guard bundleID != Bundle.main.bundleIdentifier else {
       if Date().timeIntervalSince(lastQueued) >= 60 { enqueue(Presence(activity: activity, music: music)) }
       return
     }
+    let isBrowser = Collector.browsers[bundleID] != nil
+    let readActivity = samplingSchedule.shouldReadActivity(
+      isBrowser: isBrowser,
+      browserCollectionEnabled: config.collectBrowser,
+      forceBrowserRead: forceBrowserRead
+    )
+    let readMusic = config.collectMusic && Date().timeIntervalSince(lastMusicRead) >= 5
+    guard readActivity || readMusic else { return }
+
     collecting = true
     let token = generation
-    let readMusic = Date().timeIntervalSince(lastMusicRead) >= 5
-    var sampleConfig = config; sampleConfig.collectMusic = config.collectMusic && readMusic
     let musicRunning = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music").isEmpty == false
     Task {
-      let sample = await collector.sample(bundleID: bundleID, config: sampleConfig, musicRunning: musicRunning)
+      let sample = await collector.sample(
+        bundleID: bundleID,
+        config: config,
+        musicRunning: musicRunning,
+        readActivity: readActivity,
+        readMusic: readMusic
+      )
       collecting = false
+      let runPendingTick = tickPending
+      let forcePendingBrowserRead = forceBrowserReadPending
+      tickPending = false; forceBrowserReadPending = false
+      defer {
+        if runPendingTick { tick(forceBrowserRead: forcePendingBrowserRead) }
+      }
       guard token == generation && enabled && !suspended else { return }
       // Discard slow browser replies after the user has switched applications.
       guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID else { return }
-      activity = stabilizer.update(sample.activity)
+      if readActivity { activity = stabilizer.update(sample.activity) }
       if readMusic { music = sample.music; lastMusicRead = Date() }
       if let message = sample.warning { warning = message }
       let payload = Presence(activity: activity, music: music)
