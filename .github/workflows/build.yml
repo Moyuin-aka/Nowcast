@@ -21,6 +21,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       artifact_name: ${{ steps.version.outputs.artifact_name }}
+      signed: ${{ steps.signing_mode.outputs.signed }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,8 +45,34 @@ jobs:
       - name: Test rules and protocol
         run: swift test
 
-      - name: Configure Developer ID signing and notarization
+      - name: Select release signing mode
         if: startsWith(github.ref, 'refs/tags/v')
+        id: signing_mode
+        shell: bash
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          present=0
+          for value in "$MACOS_CERTIFICATE_P12" "$APPLE_API_KEY_P8" "$APPLE_API_KEY_ID"; do
+            if [[ -n "$value" ]]; then present=$((present + 1)); fi
+          done
+
+          if [[ "$present" == 0 ]]; then
+            echo 'No Apple release credentials configured; publishing an unsigned prerelease.'
+            echo 'signed=false' >> "$GITHUB_OUTPUT"
+            echo 'NOWCAST_RELEASE_SIGNED=false' >> "$GITHUB_ENV"
+          elif [[ "$present" == 3 ]]; then
+            echo 'signed=true' >> "$GITHUB_OUTPUT"
+            echo 'NOWCAST_RELEASE_SIGNED=true' >> "$GITHUB_ENV"
+          else
+            echo 'Apple release credentials are only partially configured.' >&2
+            exit 1
+          fi
+
+      - name: Configure Developer ID signing and notarization
+        if: startsWith(github.ref, 'refs/tags/v') && steps.signing_mode.outputs.signed == 'true'
         shell: bash
         env:
           MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
@@ -124,10 +151,12 @@ jobs:
           hdiutil verify "$dmg"
           (cd dist && shasum -a 256 -c "$(basename "$dmg").sha256")
 
-          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+          if [[ "${NOWCAST_RELEASE_SIGNED:-false}" == "true" ]]; then
             codesign -dv --verbose=4 "$app" 2>&1 | grep -q '^Authority=Developer ID Application:'
             xcrun stapler validate "$dmg"
             spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
+          elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            codesign -dv --verbose=4 "$app" 2>&1 | grep -q '^Signature=adhoc$'
           fi
 
       - name: Upload package
@@ -141,7 +170,7 @@ jobs:
           retention-days: 30
 
       - name: Remove temporary signing material
-        if: always() && startsWith(github.ref, 'refs/tags/v')
+        if: always() && startsWith(github.ref, 'refs/tags/v') && steps.signing_mode.outputs.signed == 'true'
         shell: bash
         run: |
           if [[ -n "${NOWCAST_SIGNING_KEYCHAIN:-}" ]]; then
@@ -168,10 +197,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           NOWCAST_VERSION: ${{ needs.build.outputs.version }}
+          NOWCAST_RELEASE_SIGNED: ${{ needs.build.outputs.signed }}
         run: |
+          release_args=(--verify-tag --generate-notes)
+          if [[ "$NOWCAST_RELEASE_SIGNED" == "true" ]]; then
+            release_args+=(--title "Nowcast $GITHUB_REF_NAME")
+          else
+            release_args+=(
+              --prerelease
+              --title "Nowcast $GITHUB_REF_NAME (unsigned preview)"
+              --notes "⚠️ This preview is ad-hoc signed and not notarized. After copying Nowcast to Applications, follow the README's Terminal instructions for the first launch."
+            )
+          fi
           gh release create "$GITHUB_REF_NAME" \
             "dist/Nowcast-$NOWCAST_VERSION-universal.dmg" \
             "dist/Nowcast-$NOWCAST_VERSION-universal.dmg.sha256" \
-            --verify-tag \
-            --generate-notes \
-            --title "Nowcast $GITHUB_REF_NAME"
+            "${release_args[@]}"
