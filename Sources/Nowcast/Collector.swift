@@ -33,11 +33,17 @@ actor Collector {
     return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
-  func sample(bundleID: String, config: Configuration, musicRunning: Bool) -> Sample {
+  func sample(
+    bundleID: String,
+    config: Configuration,
+    musicRunning: Bool,
+    readActivity: Bool,
+    readMusic: Bool
+  ) -> Sample {
     var warning: String?
     var host: String?
     let browser = Self.browsers[bundleID] != nil
-    if browser && config.collectBrowser {
+    if readActivity && browser && config.collectBrowser {
       // bundleID comes exclusively from the fixed allowlist above.
       let tab = bundleID == "com.apple.Safari" ? "currentTab()" : "activeTab()"
       let result = script("""
@@ -55,8 +61,11 @@ actor Collector {
         host = value["host"] as? String
       } else { warning = "浏览器读取失败：请检查系统设置 → 隐私与安全性 → 自动化。" }
     }
+    let activity = readActivity
+      ? config.activity(bundleID: bundleID, browserHost: host, isBrowser: browser)
+      : nil
     var music: Music?
-    if config.collectMusic && musicRunning {
+    if readMusic && config.collectMusic && musicRunning {
       let result = script("""
         const app = Application('com.apple.Music');
         let result = null;
@@ -74,6 +83,6 @@ actor Collector {
         }
       } else { warning = "Music 读取失败：请检查自动化权限；暂停共享后可重新开启。" }
     }
-    return Sample(activity: config.activity(bundleID: bundleID, browserHost: host, isBrowser: browser), music: music, warning: warning)
+    return Sample(activity: activity, music: music, warning: warning)
   }
 }

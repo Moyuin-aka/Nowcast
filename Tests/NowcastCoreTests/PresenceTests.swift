@@ -41,4 +41,29 @@ final class PresenceTests: XCTestCase {
     XCTAssertTrue(value["activity"] is NSNull)
     XCTAssertTrue(value["music"] is NSNull)
   }
+
+  func testBrowserActivitySamplingUsesAdaptiveCadence() {
+    var schedule = ActivitySamplingSchedule(browserInterval: 3)
+    let start = Date(timeIntervalSince1970: 1_000)
+
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, now: start))
+    XCTAssertFalse(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, now: start.addingTimeInterval(2.99)))
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, now: start.addingTimeInterval(3)))
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, forceBrowserRead: true,
+      now: start.addingTimeInterval(3.1)))
+    XCTAssertFalse(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, now: start.addingTimeInterval(6)))
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: false, browserCollectionEnabled: true, now: start.addingTimeInterval(6)))
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: false, now: start.addingTimeInterval(6)))
+
+    schedule.reset()
+    XCTAssertTrue(schedule.shouldReadActivity(
+      isBrowser: true, browserCollectionEnabled: true, now: start.addingTimeInterval(6)))
+  }
 }
