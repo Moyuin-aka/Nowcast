@@ -28,6 +28,28 @@ final class PresenceTests: XCTestCase {
     XCTAssertNotNil(s.update(nil, now: t.addingTimeInterval(61)))
     XCTAssertNil(s.update(nil, now: t.addingTimeInterval(64)))
   }
+  func testBriefDetourPreservesOriginalStartTime() {
+    var s = ActivityStabilizer()
+    let t = Date(timeIntervalSince1970: 1_000)
+    let coding = Activity(kind: "coding", title: "写代码", source: "VS Code")
+    let browsing = Activity(kind: "browsing", title: "浏览网页", source: "浏览器")
+    _ = s.update(coding, now: t)
+    let original = s.update(coding, now: t.addingTimeInterval(3))
+    XCTAssertEqual(s.update(browsing, now: t.addingTimeInterval(60)), original)
+    XCTAssertEqual(s.update(browsing, now: t.addingTimeInterval(74)), original)
+    XCTAssertEqual(s.update(coding, now: t.addingTimeInterval(74.5)), original)
+    XCTAssertEqual(s.update(coding, now: t.addingTimeInterval(100)), original)
+    // A later detour starts its own confirmation window.
+    XCTAssertEqual(s.update(browsing, now: t.addingTimeInterval(110)), original)
+    XCTAssertEqual(s.update(browsing, now: t.addingTimeInterval(124)), original)
+    let switched = s.update(browsing, now: t.addingTimeInterval(125))
+    XCTAssertEqual(switched?.source, "浏览器")
+    XCTAssertEqual(switched?.startedAt, ISO8601DateFormatter().string(from: t.addingTimeInterval(110)))
+    s.clear()
+    XCTAssertNil(s.current)
+    XCTAssertNil(s.update(coding, now: t.addingTimeInterval(130)))
+    XCTAssertNotNil(s.update(coding, now: t.addingTimeInterval(133)))
+  }
   func testEndpointValidation() {
     XCTAssertNotNil(Configuration.endpointURL("https://example.com/api/presence"))
     XCTAssertNotNil(Configuration.endpointURL("http://127.0.0.1:4321/api/presence"))

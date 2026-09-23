@@ -115,7 +115,7 @@ public enum ConfigError: LocalizedError {
   }
 }
 
-/// Only publish a new foreground after it remains stable for three seconds.
+/// Keep an established activity through brief detours; start and clear promptly.
 public struct ActivityStabilizer {
   private var candidate: Activity?
   private var candidateSince = Date.distantPast
@@ -125,7 +125,8 @@ public struct ActivityStabilizer {
     var clean = activity; clean?.startedAt = nil
     if clean != candidate { candidate = clean; candidateSince = now }
     var comparable = current; comparable?.startedAt = nil
-    if candidate != comparable && now.timeIntervalSince(candidateSince) >= 3 {
+    let delay: TimeInterval = current != nil && candidate != nil ? 15 : 3
+    if candidate != comparable && now.timeIntervalSince(candidateSince) >= delay {
       current = candidate
       current?.startedAt = ISO8601DateFormatter().string(from: candidateSince)
     }

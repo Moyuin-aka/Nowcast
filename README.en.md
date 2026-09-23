@@ -48,7 +48,7 @@ The bundled activity labels are currently in Chinese. These are their English me
 - **At home in the menu bar**: preview your status, pause sharing, and optionally launch at login.
 - **In-app updates**: choose **检查更新…** (Check for Updates) from the menu bar or settings window to verify, install, and relaunch.
 - **In your own words**: edit app and domain rules. Unknown apps produce no activity; unknown sites use a generic browsing label.
-- **Built for everyday switching**: a 3-second debounce and 60-second heartbeat. After a connection loss, only the latest state is retained, with no historical replay.
+- **Built for everyday switching**: a 3-second delay for starting or clearing activity, a 15-second confirmation before switching activities, and a 60-second heartbeat. Brief detours preserve the original start time. After a connection loss, only the latest state is retained, with no historical replay.
 - **For your own website**: a small JSON protocol that works with different frameworks, databases, and hosting providers.
 
 ## Getting started
